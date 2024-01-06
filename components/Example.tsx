@@ -2,37 +2,43 @@ import React from 'react'
 import { Combobox, Dialog, Transition } from '@headlessui/react'
 import { RepositoryOption } from './RepositoryOption'
 import { FaceSmileIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-
-type Repository = {
-  id: string
-  name: string
-  full_name: string
-  open_issues_count: number
-  stargazers_count: number
-  forks_count: number
-  url: string
-  language: string
-  owner: {
-    login: string
-    avatar_url: string
-  }
-}
+import { Repository } from '../types/Repository'
 
 type APIResponse = { items: Repository[] }
 
 export default function Example() {
   const [open, setOpen] = React.useState(true)
+  const [rawQuery, setRawQuery] = React.useState('')
+
+  const [searchResults, setSearchResults] = React.useState<Repository[]>([])
+  console.log(searchResults)
 
   React.useEffect(() => {
+    const fetchSearchResults = async () => {
+      try {
+        console.log('request')
+        const response = await fetch(`/api/search?q=${encodeURIComponent(rawQuery)}`)
+        const { items }: APIResponse = await response.json()
+        console.log(items)
+        setSearchResults(items || [])
+      } catch (error) {
+        console.error('Error fetching search results:', error)
+      }
+    }
     if (!open) {
       setTimeout(() => {
         setOpen(true)
       }, 500)
     }
-  }, [open])
+    if (rawQuery.trim() !== '') {
+      fetchSearchResults()
+      // setOpen(false)
+    }
+  }, [open, rawQuery])
+  
 
-  const [rawQuery, setRawQuery] = React.useState('')
   const query = rawQuery.toLowerCase().replace(/^[#>]/, '')
+
 
   return (
     <Transition.Root
@@ -92,9 +98,9 @@ export default function Example() {
                       Repositories
                     </h2>
                     <ul className="-mx-4 mt-2 text-sm text-gray-700 space-y-0.5">
-                      <RepositoryOption />
-                      <RepositoryOption />
-                      <RepositoryOption />
+                    {searchResults.map((result) => (
+                      <RepositoryOption key={result.id} repository={result} />
+                    ))}
                     </ul>
                   </li>
                 </Combobox.Options>

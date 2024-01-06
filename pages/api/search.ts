@@ -1,3 +1,4 @@
+// pages/api/search.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 const searchRelayUrl = 'https://api.github.com/search/repositories'
